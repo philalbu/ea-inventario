@@ -1,25 +1,24 @@
-import { Package, Edit2, Trash2 } from 'lucide-react'
-import { StatusBadge, Badge } from '@/components/common/Badge'
-import { Button } from '@/components/common/Button'
-import type { Product } from '@/types'
+import { Package, Edit2, Trash2, MapPin } from "lucide-react";
+import { StatusBadge, Badge } from "@/components/common/Badge";
+import { Button } from "@/components/common/Button";
+import type { Product } from "@/types";
 
 interface ProductCardProps {
-  product: Product
-  onEdit: (product: Product) => void
-  onDelete: (product: Product) => void
+  product: Product;
+  onEdit: (product: Product) => void;
+  onDelete: (product: Product) => void;
 }
 
 export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
   const quantityColor =
     product.quantity === 0
-      ? 'text-red-600'
+      ? "text-red-600"
       : product.quantity <= 5
-      ? 'text-amber-600'
-      : 'text-gray-900'
+        ? "text-amber-600"
+        : "text-gray-900";
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group flex flex-col">
-      {/* Image */}
       <div className="relative h-44 bg-gray-50 overflow-hidden">
         {product.image_url ? (
           <img
@@ -37,19 +36,26 @@ export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
         </div>
       </div>
 
-      {/* Content */}
       <div className="p-4 flex flex-col flex-1">
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 text-sm leading-snug line-clamp-2 mb-1">
+          <h3 className="font-semibold text-gray-900 text-sm leading-snug line-clamp-2 mb-2">
             {product.name}
           </h3>
-          {product.category_name && (
-            <Badge color="blue" className="mb-2">
-              {product.category_name}
-            </Badge>
-          )}
+          <div className="flex flex-wrap gap-1 mb-2">
+            {product.category_name && (
+              <Badge color="blue">{product.category_name}</Badge>
+            )}
+            {product.location_name && (
+              <Badge color="purple">
+                <MapPin className="h-3 w-3 mr-1 inline" />
+                {product.location_name}
+              </Badge>
+            )}
+          </div>
           {product.description && (
-            <p className="text-xs text-gray-500 line-clamp-2 mt-1">{product.description}</p>
+            <p className="text-xs text-gray-500 line-clamp-2">
+              {product.description}
+            </p>
           )}
         </div>
 
@@ -82,5 +88,5 @@ export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
