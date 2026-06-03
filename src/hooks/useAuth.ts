@@ -8,30 +8,43 @@ export function useAuth() {
   const { user, isLoading, setUser, setLoading } = useAuthStore()
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
+    const timeout = setTimeout(() => {
+      setUser(null)
       setLoading(false)
-    })
+    }, 8000)
+
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        clearTimeout(timeout)
+        setUser(session?.user ?? null)
+        setLoading(false)
+      })
+      .catch(() => {
+        clearTimeout(timeout)
+        setUser(null)
+        setLoading(false)
+      })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      clearTimeout(timeout)
       setUser(session?.user ?? null)
       setLoading(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      clearTimeout(timeout)
+      subscription.unsubscribe()
+    }
   }, [setUser, setLoading])
 
   const signIn = async (username: string, password: string) => {
     const data = await authService.signIn(username, password)
-    if (data.user) {
-      await categoriesService.seedDefaults(data.user.id)
-    }
+    if (data.user) await categoriesService.seedDefaults(data.user.id)
     return data
   }
 
-  const signOut = async () => {
-    await authService.signOut()
-  }
+  const signOut = async () => { await authService.signOut() }
 
   return { user, isLoading, signIn, signOut }
 }
