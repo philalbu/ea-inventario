@@ -2,6 +2,7 @@ import { Package, Edit2, Trash2, ArrowUpDown, MapPin } from "lucide-react";
 import { useState } from "react";
 import { StatusBadge, Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
+import { getThumbnailUrl } from "@/utils/image";
 import type { Product } from "@/types";
 
 interface ProductTableProps {
@@ -101,8 +102,10 @@ export function ProductTable({
                   <div className="w-10 h-10 rounded-xl bg-gray-100 overflow-hidden shrink-0">
                     {product.image_url ? (
                       <img
-                        src={product.image_url}
+                        src={getThumbnailUrl(product.image_url) ?? ""}
                         alt={product.name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
                     ) : (

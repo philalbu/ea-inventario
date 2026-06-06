@@ -3,13 +3,25 @@ import { storageService } from "./storage.service";
 import type { Product, ProductFormData, Category, Location } from "@/types";
 
 export const productsService = {
-  async getAll(): Promise<Product[]> {
-    const { data, error } = await supabase
+  async getAll(
+    page = 0,
+    limit = 12,
+  ): Promise<{ data: Product[]; hasMore: boolean }> {
+    const from = page * limit;
+    const to = from + limit - 1;
+
+    const { data, error, count } = await supabase
       .from("products")
-      .select("*")
-      .order("created_at", { ascending: false });
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
     if (error) throw new Error(error.message);
-    return (data as Product[]) ?? [];
+    const total = count ?? 0;
+    return {
+      data: (data as Product[]) ?? [],
+      hasMore: from + limit < total,
+    };
   },
 
   async create(formData: ProductFormData, userId: string): Promise<Product> {
@@ -42,6 +54,37 @@ export const productsService = {
       .single();
     if (error) throw new Error(error.message);
     return data as Product;
+  },
+
+  async getStats(): Promise<{
+    total: number;
+    active: number;
+    lowStock: number;
+    outOfStock: number;
+  }> {
+    const { count: total } = await supabase
+      .from("products")
+      .select("*", { count: "exact", head: true });
+    const { count: active } = await supabase
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active");
+    const { count: outOfStock } = await supabase
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .eq("quantity", 0);
+    const { count: lowStock } = await supabase
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .gt("quantity", 0)
+      .lte("quantity", 5);
+
+    return {
+      total: total ?? 0,
+      active: active ?? 0,
+      lowStock: lowStock ?? 0,
+      outOfStock: outOfStock ?? 0,
+    };
   },
 
   async update(

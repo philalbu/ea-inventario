@@ -1,6 +1,7 @@
 import { Package, Edit2, Trash2, MapPin } from "lucide-react";
 import { StatusBadge, Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
+import { getThumbnailUrl } from "@/utils/image";
 import type { Product } from "@/types";
 
 interface ProductCardProps {
@@ -22,8 +23,10 @@ export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
       <div className="relative h-44 bg-gray-50 overflow-hidden">
         {product.image_url ? (
           <img
-            src={product.image_url}
+            src={getThumbnailUrl(product.image_url) ?? ""}
             alt={product.name}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (

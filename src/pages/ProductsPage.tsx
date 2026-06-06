@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   Plus,
   Search,
@@ -25,6 +25,9 @@ export function ProductsPage() {
     categories,
     locations,
     isLoadingProducts,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
     createProduct,
     updateProduct,
     deleteProduct,
@@ -49,28 +52,32 @@ export function ProductsPage() {
   const [newLocDesc, setNewLocDesc] = useState("");
   const [locError, setLocError] = useState("");
 
-  const filtered = useMemo(
-    () =>
-      products.filter((p) => {
-        const matchSearch =
-          !search || p.name.toLowerCase().includes(search.toLowerCase());
-        const matchCat = !filterCategory || p.category_id === filterCategory;
-        const matchStatus = !filterStatus || p.status === filterStatus;
-        return matchSearch && matchCat && matchStatus;
-      }),
-    [products, search, filterCategory, filterStatus],
-  );
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const stats = useMemo(
-    () => ({
-      total: products.length,
-      active: products.filter((p) => p.status === "active").length,
-      lowStock: products.filter((p) => p.quantity <= 5 && p.quantity > 0)
-        .length,
-      outOfStock: products.filter((p) => p.quantity === 0).length,
-    }),
-    [products],
-  );
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const filtered = useMemo(() => {
+    return products.filter((p) => {
+      const matchSearch =
+        !search || p.name.toLowerCase().includes(search.toLowerCase());
+      const matchCat = !filterCategory || p.category_id === filterCategory;
+      const matchStatus = !filterStatus || p.status === filterStatus;
+      return matchSearch && matchCat && matchStatus;
+    });
+  }, [products, search, filterCategory, filterStatus]);
 
   const handleAdd = async (data: ProductFormData) => {
     const cat = categories.find((c) => c.id === data.category_id);
@@ -144,12 +151,13 @@ export function ProductsPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Meus Produtos</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             {products.length} produto{products.length !== 1 ? "s" : ""}{" "}
-            cadastrado{products.length !== 1 ? "s" : ""}
+            carregado{products.length !== 1 ? "s" : ""}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -176,45 +184,7 @@ export function ProductsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        {[
-          {
-            label: "Total",
-            value: stats.total,
-            color: "bg-gray-50 text-gray-700",
-            border: "border-gray-100",
-          },
-          {
-            label: "Ativos",
-            value: stats.active,
-            color: "bg-green-50 text-green-700",
-            border: "border-green-100",
-          },
-          {
-            label: "Estoque Baixo",
-            value: stats.lowStock,
-            color: "bg-amber-50 text-amber-700",
-            border: "border-amber-100",
-          },
-          {
-            label: "Sem Estoque",
-            value: stats.outOfStock,
-            color: "bg-red-50 text-red-700",
-            border: "border-red-100",
-          },
-        ].map((stat) => (
-          <div
-            key={stat.label}
-            className={`rounded-xl border ${stat.border} ${stat.color} px-4 py-3`}
-          >
-            <p className="text-2xl font-bold">{stat.value}</p>
-            <p className="text-xs font-medium opacity-70 mt-0.5">
-              {stat.label}
-            </p>
-          </div>
-        ))}
-      </div>
-
+      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -266,37 +236,63 @@ export function ProductsPage() {
         </div>
       </div>
 
+      {/* Products */}
       {isLoadingProducts ? (
         <div className="flex justify-center py-20">
           <Spinner size="lg" />
         </div>
       ) : view === "card" ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filtered.map((p) => (
-            <ProductCard
-              key={p.id}
-              product={p}
-              onEdit={setEditingProduct}
-              onDelete={setDeletingProduct}
-            />
-          ))}
-          {filtered.length === 0 && (
-            <div className="col-span-full flex flex-col items-center py-20 text-center">
-              <Filter className="h-10 w-10 text-gray-200 mb-3" />
-              <p className="text-gray-500 font-medium">
-                Nenhum produto encontrado
-              </p>
-            </div>
-          )}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filtered.map((p) => (
+              <ProductCard
+                key={p.id}
+                product={p}
+                onEdit={setEditingProduct}
+                onDelete={setDeletingProduct}
+              />
+            ))}
+            {filtered.length === 0 && (
+              <div className="col-span-full flex flex-col items-center py-20 text-center">
+                <Filter className="h-10 w-10 text-gray-200 mb-3" />
+                <p className="text-gray-500 font-medium">
+                  Nenhum produto encontrado
+                </p>
+              </div>
+            )}
+          </div>
+          <div ref={sentinelRef} className="flex justify-center py-6">
+            {isFetchingNextPage && <Spinner size="md" />}
+            {!hasNextPage &&
+              products.length > 0 &&
+              !search &&
+              !filterCategory &&
+              !filterStatus && (
+                <p className="text-sm text-gray-400">
+                  Todos os produtos carregados
+                </p>
+              )}
+          </div>
+        </>
       ) : (
-        <ProductTable
-          products={filtered}
-          onEdit={setEditingProduct}
-          onDelete={setDeletingProduct}
-        />
+        <>
+          <ProductTable
+            products={filtered}
+            onEdit={setEditingProduct}
+            onDelete={setDeletingProduct}
+          />
+          <div ref={sentinelRef} className="flex justify-center py-6">
+            {isFetchingNextPage && <Spinner size="md" />}
+            {!hasNextPage && products.length > 0 && (
+              <p className="text-sm text-gray-400">
+                Todos os produtos carregados
+              </p>
+            )}
+          </div>
+        </>
       )}
 
+      {/* Modal: Adicionar */}
       <Modal
         isOpen={isAddOpen}
         onClose={() => setIsAddOpen(false)}
@@ -312,6 +308,7 @@ export function ProductsPage() {
         />
       </Modal>
 
+      {/* Modal: Editar */}
       <Modal
         isOpen={!!editingProduct}
         onClose={() => setEditingProduct(null)}
@@ -330,6 +327,7 @@ export function ProductsPage() {
         )}
       </Modal>
 
+      {/* Modal: Deletar */}
       <Modal
         isOpen={!!deletingProduct}
         onClose={() => setDeletingProduct(null)}
@@ -367,6 +365,7 @@ export function ProductsPage() {
         </div>
       </Modal>
 
+      {/* Modal: Locais */}
       <Modal
         isOpen={isLocOpen}
         onClose={() => setIsLocOpen(false)}
@@ -377,7 +376,7 @@ export function ProductsPage() {
           <div className="space-y-2">
             <input
               type="text"
-              placeholder="Nome do local (ex: Prateleira A, Depósito 1...)"
+              placeholder="Nome do local..."
               value={newLocName}
               onChange={(e) => {
                 setNewLocName(e.target.value);
@@ -435,6 +434,7 @@ export function ProductsPage() {
         </div>
       </Modal>
 
+      {/* Modal: Categorias */}
       <Modal
         isOpen={isCatOpen}
         onClose={() => setIsCatOpen(false)}

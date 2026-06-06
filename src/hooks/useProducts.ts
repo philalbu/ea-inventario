@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+  useQuery,
+} from "@tanstack/react-query";
 import {
   productsService,
   categoriesService,
@@ -11,9 +16,13 @@ export function useProducts() {
   const { user } = useAuthStore();
   const qc = useQueryClient();
 
-  const products = useQuery({
+  const productsQuery = useInfiniteQuery({
     queryKey: ["products"],
-    queryFn: () => productsService.getAll(),
+    queryFn: ({ pageParam = 0 }) =>
+      productsService.getAll(pageParam as number, 12),
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.hasMore ? allPages.length : undefined,
+    initialPageParam: 0,
     enabled: !!user,
   });
 
@@ -28,6 +37,8 @@ export function useProducts() {
     queryFn: () => locationsService.getAll(),
     enabled: !!user,
   });
+
+  const allProducts = productsQuery.data?.pages.flatMap((p) => p.data) ?? [];
 
   const createProduct = useMutation({
     mutationFn: (data: ProductFormData) =>
@@ -86,10 +97,13 @@ export function useProducts() {
   });
 
   return {
-    products: products.data ?? [],
+    products: allProducts,
     categories: categories.data ?? [],
     locations: locations.data ?? [],
-    isLoadingProducts: products.isLoading,
+    isLoadingProducts: productsQuery.isLoading,
+    isFetchingNextPage: productsQuery.isFetchingNextPage,
+    hasNextPage: productsQuery.hasNextPage,
+    fetchNextPage: productsQuery.fetchNextPage,
     createProduct,
     updateProduct,
     deleteProduct,
