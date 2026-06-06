@@ -1,57 +1,54 @@
-import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Package, Eye, EyeOff, AlertCircle } from 'lucide-react'
-import { Input } from '@/components/common/Input'
-import { Button } from '@/components/common/Button'
-import { useAuth } from '@/hooks/useAuth'
-import { useAuthStore } from '@/store/auth.store'
-import { FullPageSpinner } from '@/components/common/Spinner'
+import { useState } from "react";
+import { Navigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Package, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Input } from "@/components/common/Input";
+import { Button } from "@/components/common/Button";
+import { useAuth } from "@/hooks/useAuth";
+import { useAuthStore } from "@/store/auth.store";
+import { FullPageSpinner } from "@/components/common/Spinner";
 
 const schema = z.object({
-  username: z.string().min(1, 'Usuário é obrigatório'),
-  password: z.string().min(1, 'Senha é obrigatória'),
-})
+  email: z.string().min(1, "E-mail é obrigatório").email("E-mail inválido"),
+  password: z.string().min(1, "Senha é obrigatória"),
+});
 
-type LoginFormData = z.infer<typeof schema>
+type LoginFormData = z.infer<typeof schema>;
 
 export function LoginPage() {
-  const { signIn } = useAuth()
-  const { user, isLoading } = useAuthStore()
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { signIn } = useAuth();
+  const { user, isLoading } = useAuthStore();
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({ resolver: zodResolver(schema) })
+  } = useForm<LoginFormData>({ resolver: zodResolver(schema) });
 
-  if (isLoading) return <FullPageSpinner />
-  if (user) return <Navigate to="/products" replace />
+  if (isLoading) return <FullPageSpinner />;
+  if (user) return <Navigate to="/products" replace />;
 
-  const onSubmit = async ({ username, password }: LoginFormData) => {
+  const onSubmit = async ({ email, password }: LoginFormData) => {
     try {
-      setError(null)
-      await signIn(username, password)
+      setError(null);
+      await signIn(email, password);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao fazer login')
+      setError(err instanceof Error ? err.message : "Erro ao fazer login");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 flex items-center justify-center p-4">
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-32 -right-32 w-96 h-96 bg-white/5 rounded-full" />
         <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-white/5 rounded-full" />
-        <div className="absolute top-1/2 left-1/4 w-48 h-48 bg-white/3 rounded-full" />
       </div>
 
       <div className="w-full max-w-md relative">
-        {/* Card */}
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-8 pt-8 pb-10">
@@ -60,12 +57,20 @@ export function LoginPage() {
                 <Package className="h-6 w-6 text-primary-600" />
               </div>
               <div>
-                <h1 className="text-white font-bold text-xl leading-none">Inventário Pro</h1>
-                <p className="text-primary-200 text-sm mt-0.5">Gestão de estoque</p>
+                <h1 className="text-white font-bold text-xl leading-none">
+                  Inventário Pro
+                </h1>
+                <p className="text-primary-200 text-sm mt-0.5">
+                  Gestão de estoque
+                </p>
               </div>
             </div>
-            <h2 className="text-white font-semibold text-2xl">Bem-vindo de volta!</h2>
-            <p className="text-primary-200 text-sm mt-1">Faça login para acessar seu inventário</p>
+            <h2 className="text-white font-semibold text-2xl">
+              Bem-vindo de volta!
+            </h2>
+            <p className="text-primary-200 text-sm mt-1">
+              Faça login para acessar seu inventário
+            </p>
           </div>
 
           {/* Form */}
@@ -79,39 +84,53 @@ export function LoginPage() {
               )}
 
               <Input
-                label="Usuário"
-                placeholder="Seu nome de usuário"
-                autoComplete="username"
-                error={errors.username?.message}
-                {...register('username')}
+                label="E-mail"
+                placeholder="seu@email.com"
+                type="email"
+                autoComplete="email"
+                error={errors.email?.message}
+                {...register("email")}
               />
 
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">Senha</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Senha
+                </label>
                 <div className="relative">
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="Sua senha"
                     autoComplete="current-password"
                     className={`w-full rounded-lg border bg-white px-3 py-2 pr-10 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
-                      errors.password ? 'border-red-400' : 'border-gray-300'
+                      errors.password ? "border-red-400" : "border-gray-300"
                     }`}
-                    {...register('password')}
+                    {...register("password")}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-xs text-red-600">{errors.password.message}</p>
+                  <p className="text-xs text-red-600">
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
 
-              <Button type="submit" isLoading={isSubmitting} size="lg" className="w-full mt-2">
+              <Button
+                type="submit"
+                isLoading={isSubmitting}
+                size="lg"
+                className="w-full mt-2"
+              >
                 Entrar no sistema
               </Button>
             </form>
@@ -123,5 +142,5 @@ export function LoginPage() {
         </p>
       </div>
     </div>
-  )
+  );
 }
