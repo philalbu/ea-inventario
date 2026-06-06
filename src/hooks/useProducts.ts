@@ -12,18 +12,20 @@ export function useProducts() {
   const qc = useQueryClient();
 
   const products = useQuery({
-    queryKey: ["products", user?.id],
-    queryFn: () => productsService.getAll(user!.id),
+    queryKey: ["products"],
+    queryFn: () => productsService.getAll(),
     enabled: !!user,
   });
+
   const categories = useQuery({
-    queryKey: ["categories", user?.id],
-    queryFn: () => categoriesService.getAll(user!.id),
+    queryKey: ["categories"],
+    queryFn: () => categoriesService.getAll(),
     enabled: !!user,
   });
+
   const locations = useQuery({
-    queryKey: ["locations", user?.id],
-    queryFn: () => locationsService.getAll(user!.id),
+    queryKey: ["locations"],
+    queryFn: () => locationsService.getAll(),
     enabled: !!user,
   });
 
@@ -32,6 +34,7 @@ export function useProducts() {
       productsService.create(data, user!.id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
   });
+
   const updateProduct = useMutation({
     mutationFn: ({
       id,
@@ -44,6 +47,7 @@ export function useProducts() {
     }) => productsService.update(id, data, user!.id, currentImagePath),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
   });
+
   const deleteProduct = useMutation({
     mutationFn: ({
       id,
@@ -54,14 +58,17 @@ export function useProducts() {
     }) => productsService.delete(id, user!.id, imagePath),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
   });
+
   const createCategory = useMutation({
     mutationFn: (name: string) => categoriesService.create(name, user!.id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
   });
+
   const deleteCategory = useMutation({
-    mutationFn: (id: string) => categoriesService.delete(id, user!.id),
+    mutationFn: (id: string) => categoriesService.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
   });
+
   const createLocation = useMutation({
     mutationFn: ({
       name,
@@ -72,8 +79,9 @@ export function useProducts() {
     }) => locationsService.create(name, description, user!.id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["locations"] }),
   });
+
   const deleteLocation = useMutation({
-    mutationFn: (id: string) => locationsService.delete(id, user!.id),
+    mutationFn: (id: string) => locationsService.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["locations"] }),
   });
 
