@@ -19,6 +19,15 @@ export interface Location {
   created_at: string;
 }
 
+export interface Responsible {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  user_id: string;
+  created_at: string;
+}
+
 export type ProductStatus = "active" | "inactive" | "low_stock";
 
 export interface Product {
@@ -67,7 +76,6 @@ export interface FilterState {
   status: string;
 }
 
-// EVENTOS
 export type EventStatus =
   | "pending"
   | "separating"
@@ -101,6 +109,10 @@ export interface EventItem {
   confirmed: boolean;
   missing: boolean;
   missing_justification: string | null;
+  baixa_given: boolean;
+  baixa_issue: boolean;
+  baixa_observation: string | null;
+  baixa_quantity: number | null;
   user_id: string;
   created_at: string;
 }
@@ -118,13 +130,4 @@ export interface EventFormData {
   responsible_id?: string;
   responsible_name?: string;
   notes?: string;
-}
-
-export interface Responsible {
-  id: string;
-  name: string;
-  phone: string | null;
-  email: string | null;
-  user_id: string;
-  created_at: string;
 }
