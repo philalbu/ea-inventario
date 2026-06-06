@@ -12,18 +12,20 @@ import {
 import { useState } from "react";
 import { cn } from "@/utils/cn";
 import { useAuth } from "@/hooks/useAuth";
+import { useAuthStore } from "@/store/auth.store";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/products", icon: Package, label: "Produtos" },
   { to: "/events", icon: Calendar, label: "Eventos" },
-  { to: "/responsibles", icon: Users, label: "Responáveis" },
+  { to: "/responsibles", icon: Users, label: "Responsáveis" },
 ];
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { signOut } = useAuth();
+  const { user } = useAuthStore();
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -74,14 +76,14 @@ export function Sidebar() {
       <div
         className={cn(
           "px-2 py-4 border-t border-primary-700",
-          collapsed && "flex justify-center",
+          collapsed && "flex flex-col items-center",
         )}
       >
         {!collapsed && (
           <div className="px-3 py-2 mb-2">
             <p className="text-xs text-primary-300">Logado como</p>
             <p className="text-sm font-medium text-white truncate">
-              ederson.albuquerque
+              {user?.email}
             </p>
           </div>
         )}
