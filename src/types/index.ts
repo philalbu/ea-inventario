@@ -66,3 +66,63 @@ export interface FilterState {
   category: string;
   status: string;
 }
+
+// EVENTOS
+export type EventStatus =
+  | "pending"
+  | "separating"
+  | "separated"
+  | "confirming"
+  | "completed"
+  | "has_issues";
+
+export interface AppEvent {
+  id: string;
+  name: string;
+  event_date: string;
+  status: EventStatus;
+  notes: string | null;
+  responsible_id: string | null;
+  responsible_name: string | null;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EventItem {
+  id: string;
+  event_id: string;
+  product_id: string;
+  product_name: string;
+  product_image_url: string | null;
+  quantity_requested: number;
+  quantity_confirmed: number | null;
+  separated: boolean;
+  confirmed: boolean;
+  missing: boolean;
+  missing_justification: string | null;
+  user_id: string;
+  created_at: string;
+}
+
+export interface CartItem {
+  product_id: string;
+  product_name: string;
+  product_image_url: string | null;
+  quantity_requested: number;
+}
+
+export interface EventFormData {
+  name: string;
+  event_date: string;
+  notes?: string;
+}
+
+export interface Responsible {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  user_id: string;
+  created_at: string;
+}
