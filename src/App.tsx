@@ -24,13 +24,13 @@ export default function App() {
       <BrowserRouter>
         <AuthInitializer>
           <Routes>
-            <Route path="/responsibles" element={<ResponsiblesPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route element={<ProtectedLayout />}>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/events" element={<EventsPage />} />
               <Route path="/events/:id" element={<EventDetailPage />} />
+              <Route path="/responsibles" element={<ResponsiblesPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

@@ -5,16 +5,18 @@ import { z } from "zod";
 import { Plus, Minus, ShoppingCart, Package, Trash2 } from "lucide-react";
 import { Input } from "@/components/common/Input";
 import { Button } from "@/components/common/Button";
-import type { Product, CartItem, EventFormData } from "@/types";
+import type { Product, CartItem, EventFormData, Responsible } from "@/types";
 
 const schema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   event_date: z.string().min(1, "Data é obrigatória"),
+  responsible_id: z.string().optional(),
   notes: z.string().optional(),
 });
 
 interface EventFormProps {
   products: Product[];
+  responsibles: Responsible[];
   onSubmit: (data: EventFormData, items: CartItem[]) => Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
@@ -22,6 +24,7 @@ interface EventFormProps {
 
 export function EventForm({
   products,
+  responsibles,
   onSubmit,
   onCancel,
   isSubmitting,
@@ -99,6 +102,21 @@ export function EventForm({
           error={errors.event_date?.message}
           {...register("event_date")}
         />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium text-gray-700">Responsável</label>
+        <select
+          {...register("responsible_id")}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+        >
+          <option value="">Sem responsável</option>
+          {responsibles.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <Input

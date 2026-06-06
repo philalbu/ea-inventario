@@ -115,6 +115,8 @@ export interface CartItem {
 export interface EventFormData {
   name: string;
   event_date: string;
+  responsible_id?: string;
+  responsible_name?: string;
   notes?: string;
 }
 

@@ -8,11 +8,13 @@ import {
   CheckCircle,
   Clock,
   Package,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { Modal } from "@/components/common/Modal";
 import { useEvents } from "@/hooks/useEvents";
 import { useProducts } from "@/hooks/useProducts";
+import { useResponsibles } from "@/hooks/useResponsibles";
 import { EventForm } from "@/components/events/EventForm";
 import { useNavigate } from "react-router-dom";
 import type { AppEvent, CartItem, EventFormData } from "@/types";
@@ -54,21 +56,25 @@ export function EventsPage() {
   const navigate = useNavigate();
   const { events, isLoading, createEvent, deleteEvent } = useEvents();
   const { products } = useProducts();
+  const { responsibles } = useResponsibles();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [deletingEvent, setDeletingEvent] = useState<AppEvent | null>(null);
 
   const handleCreate = async (formData: EventFormData, items: CartItem[]) => {
-    await createEvent.mutateAsync({ formData, items });
+    const resp = responsibles.find((r) => r.id === formData.responsible_id);
+    await createEvent.mutateAsync({
+      formData: { ...formData, responsible_name: resp?.name },
+      items,
+    });
     setIsCreateOpen(false);
   };
 
-  const formatDate = (date: string) => {
-    return new Date(date + "T00:00:00").toLocaleDateString("pt-BR", {
+  const formatDate = (date: string) =>
+    new Date(date + "T00:00:00").toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
     });
-  };
 
   const isDatePast = (date: string) =>
     new Date(date + "T23:59:59") < new Date();
@@ -113,14 +119,26 @@ export function EventsPage() {
             return (
               <div
                 key={event.id}
-                className={`bg-white rounded-2xl border shadow-sm p-5 flex items-center justify-between gap-4 ${past && event.status !== "completed" ? "border-amber-200" : "border-gray-100"}`}
+                className={`bg-white rounded-2xl border shadow-sm p-5 flex items-center justify-between gap-4 ${
+                  past && event.status !== "completed"
+                    ? "border-amber-200"
+                    : "border-gray-100"
+                }`}
               >
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${past && event.status !== "completed" ? "bg-amber-50" : "bg-primary-50"}`}
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                      past && event.status !== "completed"
+                        ? "bg-amber-50"
+                        : "bg-primary-50"
+                    }`}
                   >
                     <Calendar
-                      className={`h-6 w-6 ${past && event.status !== "completed" ? "text-amber-500" : "text-primary-600"}`}
+                      className={`h-6 w-6 ${
+                        past && event.status !== "completed"
+                          ? "text-amber-500"
+                          : "text-primary-600"
+                      }`}
                     />
                   </div>
                   <div className="min-w-0">
@@ -130,6 +148,12 @@ export function EventsPage() {
                     <p className="text-sm text-gray-500">
                       {formatDate(event.event_date)}
                     </p>
+                    {event.responsible_name && (
+                      <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                        <Users className="h-3 w-3" />
+                        {event.responsible_name}
+                      </p>
+                    )}
                     {past && event.status !== "completed" && (
                       <p className="text-xs text-amber-600 font-medium mt-0.5">
                         ⚠️ Evento passou — conferir itens
@@ -174,6 +198,7 @@ export function EventsPage() {
       >
         <EventForm
           products={products}
+          responsibles={responsibles}
           onSubmit={handleCreate}
           onCancel={() => setIsCreateOpen(false)}
           isSubmitting={createEvent.isPending}
