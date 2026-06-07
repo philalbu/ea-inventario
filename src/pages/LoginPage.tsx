@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Package, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import { Input } from "@/components/common/Input";
 import { Button } from "@/components/common/Button";
 import { useAuth } from "@/hooks/useAuth";
@@ -43,6 +43,7 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 flex items-center justify-center p-4">
+      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-32 -right-32 w-96 h-96 bg-white/5 rounded-full" />
         <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-white/5 rounded-full" />
@@ -50,60 +51,53 @@ export function LoginPage() {
 
       <div className="w-full max-w-md relative">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-8 pt-8 pb-10">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-lg">
-                <Package className="h-6 w-6 text-primary-600" />
-              </div>
-              <div>
-                <h1 className="text-white font-bold text-xl leading-none">
-                  Inventário Pro
-                </h1>
-                <p className="text-primary-200 text-sm mt-0.5">
-                  Gestão de estoque
-                </p>
-              </div>
-            </div>
-            <h2 className="text-white font-semibold text-2xl">
+          {/* Header — fundo branco */}
+          <div className="bg-white px-8 pt-8 pb-6 flex flex-col items-center text-center border-b border-gray-100">
+            <img
+              src="/ea-logo.png"
+              alt="Esconderijo do Altíssimo"
+              className="h-20 object-contain mb-4"
+            />
+            <h2 className="text-gray-900 font-bold text-2xl">
               Bem-vindo de volta!
             </h2>
-            <p className="text-primary-200 text-sm mt-1">
-              Faça login para acessar seu inventário
+            <p className="text-gray-500 text-sm mt-1">
+              Faça login para acessar o sistema
             </p>
           </div>
 
-          {/* Form */}
-          <div className="px-8 py-8">
+          {/* Form — fundo vermelho */}
+          <div className="bg-gradient-to-b from-primary-600 to-primary-700 px-8 py-8">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               {error && (
-                <div className="flex items-center gap-2.5 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+                <div className="flex items-center gap-2.5 bg-red-800/50 border border-red-400/50 text-white rounded-xl px-4 py-3 text-sm">
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   {error}
                 </div>
               )}
 
-              <Input
-                label="E-mail"
-                placeholder="seu@email.com"
-                type="email"
-                autoComplete="email"
-                error={errors.email?.message}
-                {...register("email")}
-              />
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-white">E-mail</label>
+                <input
+                  type="email"
+                  placeholder="seu@email.com"
+                  autoComplete="email"
+                  className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-white ${errors.email ? "border-red-300" : "border-transparent"}`}
+                  {...register("email")}
+                />
+                {errors.email && (
+                  <p className="text-xs text-red-200">{errors.email.message}</p>
+                )}
+              </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">
-                  Senha
-                </label>
+                <label className="text-sm font-medium text-white">Senha</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     placeholder="Sua senha"
                     autoComplete="current-password"
-                    className={`w-full rounded-lg border bg-white px-3 py-2 pr-10 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
-                      errors.password ? "border-red-400" : "border-gray-300"
-                    }`}
+                    className={`w-full rounded-lg border bg-white px-3 py-2 pr-10 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-white ${errors.password ? "border-red-300" : "border-transparent"}`}
                     {...register("password")}
                   />
                   <button
@@ -119,7 +113,7 @@ export function LoginPage() {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-xs text-red-600">
+                  <p className="text-xs text-red-200">
                     {errors.password.message}
                   </p>
                 )}
@@ -129,7 +123,7 @@ export function LoginPage() {
                 type="submit"
                 isLoading={isSubmitting}
                 size="lg"
-                className="w-full mt-2"
+                className="w-full mt-2 bg-white text-primary-700 hover:bg-gray-100 focus:ring-white"
               >
                 Entrar no sistema
               </Button>
@@ -138,7 +132,7 @@ export function LoginPage() {
         </div>
 
         <p className="text-center text-primary-200 text-xs mt-6">
-          Inventário Pro © {new Date().getFullYear()}
+          Esconderijo do Altíssimo © {new Date().getFullYear()}
         </p>
       </div>
     </div>
