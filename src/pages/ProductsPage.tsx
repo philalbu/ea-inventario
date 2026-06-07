@@ -9,7 +9,10 @@ import {
   Tag,
   Trash2,
   MapPin,
+  ChevronDown,
+  Package,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/common/Button";
 import { Modal } from "@/components/common/Modal";
 import { ProductCard } from "@/components/products/ProductCard";
@@ -17,9 +20,12 @@ import { ProductTable } from "@/components/products/ProductTable";
 import { ProductForm } from "@/components/products/ProductForm";
 import { Spinner } from "@/components/common/Spinner";
 import { useProducts } from "@/hooks/useProducts";
+import { productsService } from "@/services/products.service";
+import { useAuthStore } from "@/store/auth.store";
 import type { Product, ViewMode, ProductFormData } from "@/types";
 
 export function ProductsPage() {
+  const { user } = useAuthStore();
   const {
     products,
     categories,
@@ -37,10 +43,19 @@ export function ProductsPage() {
     deleteLocation,
   } = useProducts();
 
+  const { data: stats } = useQuery({
+    queryKey: ["products-stats"],
+    queryFn: () => productsService.getStats(),
+    enabled: !!user,
+  });
+
   const [view, setView] = useState<ViewMode>("card");
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [catFilterOpen, setCatFilterOpen] = useState(false);
+  const [statusFilterOpen, setStatusFilterOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
@@ -149,43 +164,77 @@ export function ProductsPage() {
     }
   };
 
+  const total = stats?.total ?? 0;
+
+  const statusLabel: Record<string, string> = {
+    active: "Ativo",
+    low_stock: "Estoque Baixo",
+    inactive: "Inativo",
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-[24px]">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Meus Produtos</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {products.length} produto{products.length !== 1 ? "s" : ""}{" "}
-            carregado{products.length !== 1 ? "s" : ""}
+            {total} produto{total !== 1 ? "s" : ""} cadastrado
+            {total !== 1 ? "s" : ""}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setIsCatOpen(true)}
-          >
-            <Tag className="h-4 w-4" />
-            <span className="hidden sm:inline">Categorias</span>
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setIsLocOpen(true)}
-          >
-            <MapPin className="h-4 w-4" />
-            <span className="hidden sm:inline">Locais</span>
-          </Button>
-          <Button size="sm" onClick={() => setIsAddOpen(true)}>
+
+        {/* Dropdown Adicionar */}
+        <div className="relative">
+          <Button size="sm" onClick={() => setDropdownOpen(!dropdownOpen)}>
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Novo Produto</span>
+            <span>Adicionar</span>
           </Button>
+          {dropdownOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setDropdownOpen(false)}
+              />
+              <div
+                className="absolute right-0 z-20 bg-white rounded-xl shadow-lg border border-gray-300 w-48 overflow-hidden"
+                style={{ top: "calc(100% + 12px)" }}
+              >
+                <button
+                  onClick={() => {
+                    setIsAddOpen(true);
+                    setDropdownOpen(false);
+                  }}
+                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-gray-700 hover:bg-primary-600 hover:text-white transition-colors"
+                >
+                  <Package className="h-4 w-4" /> Produto
+                </button>
+                <button
+                  onClick={() => {
+                    setIsCatOpen(true);
+                    setDropdownOpen(false);
+                  }}
+                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-200 transition-colors"
+                >
+                  <Tag className="h-4 w-4" /> Categoria
+                </button>
+                <button
+                  onClick={() => {
+                    setIsLocOpen(true);
+                    setDropdownOpen(false);
+                  }}
+                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-200 transition-colors"
+                >
+                  <MapPin className="h-4 w-4" /> Local
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+      <div className="flex flex-col sm:flex-row gap-3 mb-[32px]">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
@@ -197,28 +246,110 @@ export function ProductsPage() {
           />
         </div>
         <div className="flex gap-2">
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="text-sm rounded-lg border border-gray-300 px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-          >
-            <option value="">Todas as categorias</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="text-sm rounded-lg border border-gray-300 px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-          >
-            <option value="">Todos os status</option>
-            <option value="active">Ativo</option>
-            <option value="low_stock">Estoque Baixo</option>
-            <option value="inactive">Inativo</option>
-          </select>
+          {/* Dropdown Categoria */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setCatFilterOpen(!catFilterOpen);
+                setStatusFilterOpen(false);
+              }}
+              className="flex items-center gap-2 text-sm rounded-lg border border-gray-300 px-3 py-2 bg-white hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+            >
+              <Tag className="h-4 w-4 text-gray-400" />
+              <span className="text-gray-700">
+                {filterCategory
+                  ? categories.find((c) => c.id === filterCategory)?.name
+                  : "Categoria"}
+              </span>
+              <ChevronDown
+                className={`h-3.5 w-3.5 text-gray-400 transition-transform duration-200 ${catFilterOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+            {catFilterOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setCatFilterOpen(false)}
+                />
+                <div
+                  className="absolute left-0 z-20 bg-white rounded-xl shadow-lg border border-gray-300 w-48 overflow-hidden"
+                  style={{ top: "calc(100% + 12px)" }}
+                >
+                  <button
+                    onClick={() => {
+                      setFilterCategory("");
+                      setCatFilterOpen(false);
+                    }}
+                    className={`flex items-center w-full px-4 py-3 text-sm transition-colors ${!filterCategory ? "bg-primary-50 text-primary-700 font-medium" : "text-gray-700 hover:bg-gray-50"}`}
+                  >
+                    Todas as categorias
+                  </button>
+                  {categories.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => {
+                        setFilterCategory(c.id);
+                        setCatFilterOpen(false);
+                      }}
+                      className={`flex items-center w-full px-4 py-3 text-sm transition-colors ${filterCategory === c.id ? "bg-primary-50 text-primary-700 font-medium" : "text-gray-700 hover:bg-gray-200"}`}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Dropdown Status */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setStatusFilterOpen(!statusFilterOpen);
+                setCatFilterOpen(false);
+              }}
+              className="flex items-center gap-2 text-sm rounded-lg border border-gray-300 px-3 py-2 bg-white hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+            >
+              <Filter className="h-4 w-4 text-gray-400" />
+              <span className="text-gray-700">
+                {filterStatus ? statusLabel[filterStatus] : "Status"}
+              </span>
+              <ChevronDown
+                className={`h-3.5 w-3.5 text-gray-400 transition-transform duration-200 ${statusFilterOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+            {statusFilterOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setStatusFilterOpen(false)}
+                />
+                <div
+                  className="absolute left-0 z-20 bg-white rounded-xl shadow-lg border border-gray-300 w-44 overflow-hidden"
+                  style={{ top: "calc(100% + 12px)" }}
+                >
+                  {[
+                    { value: "", label: "Todos os status" },
+                    { value: "active", label: "Ativo" },
+                    { value: "low_stock", label: "Estoque Baixo" },
+                    { value: "inactive", label: "Inativo" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => {
+                        setFilterStatus(opt.value);
+                        setStatusFilterOpen(false);
+                      }}
+                      className={`flex items-center w-full px-4 py-3 text-sm transition-colors ${filterStatus === opt.value ? "bg-primary-50 text-primary-700 font-medium" : "text-gray-700 hover:bg-gray-200"}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
           <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
             <button
               onClick={() => setView("card")}

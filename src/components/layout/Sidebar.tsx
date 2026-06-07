@@ -32,21 +32,17 @@ export function Sidebar() {
       {/* Logo */}
       <div
         className={cn(
-          "flex items-center gap-3 px-4 py-5 border-b border-primary-700",
-          collapsed && "justify-center px-2",
+          "flex items-center justify-center px-4 py-5 border-b border-primary-700 bg-white",
         )}
       >
-        <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-sm">
-          <Package className="h-5 w-5 text-primary-600" />
-        </div>
-        {!collapsed && (
-          <div>
-            <span className="text-white font-bold text-lg leading-none">
-              Inventário
-            </span>
-            <span className="block text-primary-200 text-xs">Pro</span>
-          </div>
-        )}
+        <img
+          src="/ea-logo.png"
+          alt="Esconderijo do Altíssimo"
+          className={cn(
+            "object-contain transition-all duration-300",
+            collapsed ? "w-10 h-10" : "w-36 h-14",
+          )}
+        />
       </div>
 
       {/* Nav */}
@@ -126,12 +122,11 @@ export function Sidebar() {
 
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-primary-700 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-            <Package className="h-4 w-4 text-primary-600" />
-          </div>
-          <span className="text-white font-bold">Inventário Pro</span>
-        </div>
+        <img
+          src="/ea-logo.png"
+          alt="Esconderijo do Altíssimo"
+          className="h-9 object-contain"
+        />
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           className="text-white p-1"

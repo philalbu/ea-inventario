@@ -64,10 +64,9 @@ export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
 
         <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-400">Quantidade</p>
-            <p className={`text-xl font-bold ${quantityColor}`}>
+            <p className={`text-[24px] font-bold ${quantityColor}`}>
               {product.quantity}
-              <span className="text-xs font-normal text-gray-400 ml-1">un</span>
+              <span className="text-xs font-[600] text-gray-700 ml-1">un</span>
             </p>
           </div>
           <div className="flex gap-1.5">
