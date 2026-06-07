@@ -46,13 +46,6 @@ export function DashboardPage() {
     },
     enabled: !!user,
   });
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => categoriesService.getAll(),
-    enabled: !!user,
-  });
-
   const { data: categoryStats = [] } = useQuery({
     queryKey: ["categories-stats"],
     queryFn: async () => {
