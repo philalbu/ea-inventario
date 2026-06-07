@@ -89,7 +89,7 @@ export function EventsPage() {
             {events.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <Button size="sm" onClick={() => setIsCreateOpen(true)}>
+        <Button size="sm" onClick={() => navigate("/events/new")}>
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">Novo Evento</span>
         </Button>

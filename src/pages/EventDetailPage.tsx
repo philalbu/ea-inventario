@@ -128,7 +128,6 @@ export function EventDetailPage() {
           observation: s.observation,
         };
       });
-
     await eventsService.processBaixa(event.id, user!.id, baixaItems);
     setIsBaixaOpen(false);
     window.location.reload();
@@ -136,37 +135,37 @@ export function EventDetailPage() {
 
   const handleStartSeparating = async () => {
     setIsUpdating(true);
-    await eventsService.updateStatus(event.id, "separating", user!.id);
+    await eventsService.updateStatus(event.id, "separating");
     window.location.reload();
   };
 
   const handleConfirmSeparation = async () => {
     setIsUpdating(true);
-    await eventsService.updateStatus(event.id, "separated", user!.id);
+    await eventsService.updateStatus(event.id, "separated");
     window.location.reload();
   };
 
   const handleStartConferring = async () => {
     setIsUpdating(true);
-    await eventsService.updateStatus(event.id, "confirming", user!.id);
+    await eventsService.updateStatus(event.id, "confirming");
     window.location.reload();
   };
 
   const handleFinishEvent = async () => {
     setIsUpdating(true);
     const status = hasMissing ? "has_issues" : "completed";
-    await eventsService.updateStatus(event.id, status, user!.id);
+    await eventsService.updateStatus(event.id, status);
     window.location.reload();
   };
 
   const handleEditEvent = async () => {
     if (!editEventName.trim() || !editEventDate) return;
     setIsSavingEvent(true);
-    await eventsService.update(
-      event.id,
-      { name: editEventName, event_date: editEventDate, notes: editEventNotes },
-      user!.id,
-    );
+    await eventsService.update(event.id, {
+      name: editEventName,
+      event_date: editEventDate,
+      notes: editEventNotes,
+    });
     setIsSavingEvent(false);
     setIsEditEventOpen(false);
     window.location.reload();
@@ -318,19 +317,14 @@ export function EventDetailPage() {
             Separados
           </Button>
         )}
-        {event.status === "separated" && (
-          <div className="space-y-2">
-            {isDatePast && (
-              <Button
-                onClick={handleStartConferring}
-                className="w-full bg-amber-600 hover:bg-amber-700"
-                isLoading={isUpdating}
-              >
-                <AlertCircle className="h-4 w-4" /> Iniciar Conferência
-                Pós-Evento
-              </Button>
-            )}
-          </div>
+        {event.status === "separated" && isDatePast && (
+          <Button
+            onClick={handleStartConferring}
+            className="w-full bg-amber-600 hover:bg-amber-700"
+            isLoading={isUpdating}
+          >
+            <AlertCircle className="h-4 w-4" /> Iniciar Conferência Pós-Evento
+          </Button>
         )}
         {event.status === "confirming" && allConfirmed && (
           <Button
@@ -426,7 +420,6 @@ export function EventDetailPage() {
                   )}
                 </div>
               </div>
-
               <div className="flex items-center gap-2 shrink-0">
                 {canEdit && (
                   <>
@@ -595,10 +588,8 @@ export function EventDetailPage() {
                         </p>
                       </div>
                     </div>
-
                     {state.selected && (
                       <div className="space-y-3 pl-7">
-                        {/* Toggle OK / Problema */}
                         <div className="flex gap-2">
                           <button
                             onClick={() =>
@@ -623,8 +614,6 @@ export function EventDetailPage() {
                             🔴 Problema
                           </button>
                         </div>
-
-                        {/* Quantidade */}
                         <div className="flex items-center gap-2">
                           <label className="text-xs text-gray-600 w-20 shrink-0">
                             Quantidade:
@@ -645,11 +634,9 @@ export function EventDetailPage() {
                             className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                           />
                         </div>
-
-                        {/* Observação se problema */}
                         {state.isIssue && (
                           <textarea
-                            placeholder="Descreva o problema (danificado, extraviado, etc.)..."
+                            placeholder="Descreva o problema..."
                             value={state.observation}
                             onChange={(e) =>
                               setBaixaState((prev) => ({
@@ -670,7 +657,6 @@ export function EventDetailPage() {
                 );
               })}
           </div>
-
           <div className="flex gap-3 pt-2">
             <Button
               variant="secondary"
@@ -763,7 +749,6 @@ export function EventDetailPage() {
               </p>
             )}
           </div>
-
           {cart.length > 0 && (
             <div className="border-t pt-3 space-y-2">
               <p className="text-xs font-semibold text-gray-500">
@@ -822,7 +807,6 @@ export function EventDetailPage() {
               })}
             </div>
           )}
-
           <div className="flex gap-3">
             <Button
               variant="secondary"

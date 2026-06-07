@@ -8,8 +8,8 @@ export function useEvents() {
   const qc = useQueryClient();
 
   const events = useQuery({
-    queryKey: ["events", user?.id],
-    queryFn: () => eventsService.getAll(user!.id),
+    queryKey: ["events"],
+    queryFn: () => eventsService.getAll(),
     enabled: !!user,
   });
 
@@ -25,7 +25,7 @@ export function useEvents() {
   });
 
   const deleteEvent = useMutation({
-    mutationFn: (id: string) => eventsService.delete(id, user!.id),
+    mutationFn: (id: string) => eventsService.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["events"] }),
   });
 
@@ -43,7 +43,7 @@ export function useEventDetail(eventId: string) {
 
   const event = useQuery({
     queryKey: ["event", eventId],
-    queryFn: () => eventsService.getById(eventId, user!.id),
+    queryFn: () => eventsService.getById(eventId),
     enabled: !!eventId && !!user,
   });
 

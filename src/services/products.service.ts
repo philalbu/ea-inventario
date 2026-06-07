@@ -24,6 +24,15 @@ export const productsService = {
     };
   },
 
+  async getAllForSelect(): Promise<Product[]> {
+    const { data, error } = await supabase
+      .from("products")
+      .select("id, name, quantity, image_url, category_name, location_name")
+      .order("name");
+    if (error) throw new Error(error.message);
+    return (data as Product[]) ?? [];
+  },
+
   async create(formData: ProductFormData, userId: string): Promise<Product> {
     let imageUrl: string | null = null;
     let imagePath: string | null = null;
@@ -149,6 +158,15 @@ export const categoriesService = {
       .order("name");
     if (error) throw new Error(error.message);
     return (data as Category[]) ?? [];
+  },
+
+  async getAllForSelect(): Promise<Product[]> {
+    const { data, error } = await supabase
+      .from("products")
+      .select("id, name, quantity, image_url, category_name, location_name")
+      .order("name");
+    if (error) throw new Error(error.message);
+    return (data as Product[]) ?? [];
   },
 
   async create(name: string, userId: string): Promise<Category> {

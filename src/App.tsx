@@ -8,6 +8,7 @@ import { EventsPage } from "@/pages/EventsPage";
 import { EventDetailPage } from "@/pages/EventDetailPage";
 import { useAuth } from "@/hooks/useAuth";
 import { ResponsiblesPage } from "@/pages/ResponsiblesPage";
+import { CreateEventPage } from "@/pages/CreateEventPage";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, retry: 1 } },
@@ -25,6 +26,7 @@ export default function App() {
         <AuthInitializer>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/events/new" element={<CreateEventPage />} />
             <Route element={<ProtectedLayout />}>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/products" element={<ProductsPage />} />

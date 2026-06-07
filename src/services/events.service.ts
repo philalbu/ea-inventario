@@ -2,22 +2,20 @@ import { supabase } from "@/lib/supabase";
 import type { AppEvent, EventItem, EventFormData, CartItem } from "@/types";
 
 export const eventsService = {
-  async getAll(userId: string): Promise<AppEvent[]> {
+  async getAll(): Promise<AppEvent[]> {
     const { data, error } = await supabase
       .from("events")
       .select("*")
-      .eq("user_id", userId)
       .order("event_date", { ascending: true });
     if (error) throw new Error(error.message);
     return (data as AppEvent[]) ?? [];
   },
 
-  async getById(id: string, userId: string): Promise<AppEvent> {
+  async getById(id: string): Promise<AppEvent> {
     const { data, error } = await supabase
       .from("events")
       .select("*")
       .eq("id", id)
-      .eq("user_id", userId)
       .single();
     if (error) throw new Error(error.message);
     return data as AppEvent;
@@ -34,6 +32,8 @@ export const eventsService = {
         name: formData.name,
         event_date: formData.event_date,
         notes: formData.notes || null,
+        responsible_id: formData.responsible_id || null,
+        responsible_name: formData.responsible_name || null,
         status: "pending",
         user_id: userId,
       })
@@ -60,7 +60,6 @@ export const eventsService = {
   async update(
     id: string,
     formData: { name: string; event_date: string; notes?: string },
-    userId: string,
   ): Promise<void> {
     const { error } = await supabase
       .from("events")
@@ -69,30 +68,20 @@ export const eventsService = {
         event_date: formData.event_date,
         notes: formData.notes || null,
       })
-      .eq("id", id)
-      .eq("user_id", userId);
+      .eq("id", id);
     if (error) throw new Error(error.message);
   },
 
-  async delete(id: string, userId: string): Promise<void> {
-    const { error } = await supabase
-      .from("events")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", userId);
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase.from("events").delete().eq("id", id);
     if (error) throw new Error(error.message);
   },
 
-  async updateStatus(
-    id: string,
-    status: string,
-    userId: string,
-  ): Promise<void> {
+  async updateStatus(id: string, status: string): Promise<void> {
     const { error } = await supabase
       .from("events")
       .update({ status })
-      .eq("id", id)
-      .eq("user_id", userId);
+      .eq("id", id);
     if (error) throw new Error(error.message);
   },
 
@@ -109,7 +98,6 @@ export const eventsService = {
   ): Promise<void> {
     for (const b of baixaItems) {
       if (b.isIssue) {
-        // Marca como problema
         await supabase
           .from("event_items")
           .update({
@@ -120,7 +108,6 @@ export const eventsService = {
           })
           .eq("id", b.itemId);
       } else {
-        // Deduz do estoque
         const { data: product } = await supabase
           .from("products")
           .select("quantity")
@@ -144,7 +131,6 @@ export const eventsService = {
           })
           .eq("id", b.itemId);
 
-        // Registra movimentação
         await supabase.from("stock_movements").insert({
           event_id: eventId,
           product_id: b.productId,
@@ -155,7 +141,6 @@ export const eventsService = {
       }
     }
 
-    // Verifica se todos os itens foram processados
     const { data: allItems } = await supabase
       .from("event_items")
       .select("baixa_given, baixa_issue")
@@ -166,7 +151,7 @@ export const eventsService = {
 
     if (allProcessed) {
       const newStatus = hasIssues ? "has_issues" : "completed";
-      await eventsService.updateStatus(eventId, newStatus, userId);
+      await eventsService.updateStatus(eventId, newStatus);
     }
   },
 };
