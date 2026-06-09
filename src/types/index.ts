@@ -131,3 +131,79 @@ export interface EventFormData {
   responsible_name?: string;
   notes?: string;
 }
+
+// ============================================================
+// ADMIN: Roles, Permissões, Perfis e Auditoria
+// ============================================================
+
+export type RoleName = "super_admin" | "admin" | "operator";
+
+export interface Role {
+  id: string;
+  name: RoleName;
+  description: string | null;
+  is_system: boolean;
+  created_at: string;
+}
+
+export interface UserRole {
+  id: string;
+  user_id: string;
+  role_id: string;
+  assigned_by: string | null;
+  created_at: string;
+}
+
+export interface Module {
+  id: string;
+  name: string;
+  label: string;
+  description: string | null;
+  icon: string | null;
+  sort_order: number;
+}
+
+export interface RolePermission {
+  id: string;
+  role_id: string;
+  module_id: string;
+  module_name?: string; // ← adiciona
+  can_view: boolean;
+  can_create: boolean;
+  can_update: boolean;
+  can_delete: boolean;
+}
+
+export interface Profile {
+  id: string;
+  full_name: string | null;
+  username: string | null;
+  email: string | null;
+  created_at: string;
+}
+
+export interface UserWithRole extends Profile {
+  role: Role | null;
+  role_id: string | null;
+}
+
+export type AuditAction =
+  | "CREATE"
+  | "UPDATE"
+  | "DELETE"
+  | "LOGIN"
+  | "LOGOUT"
+  | "VIEW";
+
+export interface AuditLog {
+  id: string;
+  user_id: string | null;
+  user_email: string | null;
+  action: AuditAction;
+  module: string;
+  record_id: string | null;
+  record_label: string | null;
+  old_data: Record<string, unknown> | null;
+  new_data: Record<string, unknown> | null;
+  created_at: string;
+}

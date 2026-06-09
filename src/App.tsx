@@ -7,8 +7,14 @@ import { DashboardPage } from "@/pages/DashboardPage";
 import { EventsPage } from "@/pages/EventsPage";
 import { EventDetailPage } from "@/pages/EventDetailPage";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
 import { ResponsiblesPage } from "@/pages/ResponsiblesPage";
 import { CreateEventPage } from "@/pages/CreateEventPage";
+import { AdminPage } from "@/pages/admin/AdminPage";
+import { UsersPage } from "@/pages/admin/UsersPage";
+import { RolesPage } from "@/pages/admin/RolesPage";
+import { AuditPage } from "@/pages/admin/AuditPage";
+import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, retry: 1 } },
@@ -16,6 +22,7 @@ const queryClient = new QueryClient({
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
   useAuth();
+  usePermissions();
   return <>{children}</>;
 }
 
@@ -29,10 +36,78 @@ export default function App() {
             <Route path="/events/new" element={<CreateEventPage />} />
             <Route element={<ProtectedLayout />}>
               <Route path="/" element={<DashboardPage />} />
-              <Route path="/products" element={<ProductsPage />} />
-              <Route path="/events" element={<EventsPage />} />
-              <Route path="/events/:id" element={<EventDetailPage />} />
-              <Route path="/responsibles" element={<ResponsiblesPage />} />
+              <Route
+                path="/products"
+                element={
+                  <ProtectedRoute module="products">
+                    <ProductsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/events"
+                element={
+                  <ProtectedRoute module="events">
+                    <EventsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/events/new"
+                element={
+                  <ProtectedRoute module="events">
+                    <CreateEventPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/events/:id"
+                element={
+                  <ProtectedRoute module="events">
+                    <EventDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/responsibles"
+                element={
+                  <ProtectedRoute module="responsibles">
+                    <ResponsiblesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <AdminPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <UsersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/roles"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <RolesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/audit"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <AuditPage />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

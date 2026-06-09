@@ -19,6 +19,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { eventsService } from "@/services/events.service";
 import { useAuthStore } from "@/store/auth.store";
 import type { EventItem, CartItem } from "@/types";
+import { usePermissionStore } from "@/store/permission.store";
 
 const statusLabel: Record<string, string> = {
   pending: "Aguardando Separação",
@@ -53,6 +54,10 @@ export function EventDetailPage() {
     deleteItem,
     updateQuantity,
   } = useEventDetail(id!);
+
+  const hasPermission = usePermissionStore((s) => s.hasPermission);
+  const canUpdate = hasPermission("events", "update");
+  const canDelete = hasPermission("events", "delete");
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [missingItem, setMissingItem] = useState<EventItem | null>(null);
@@ -256,7 +261,11 @@ export function EventDetailPage() {
             <p className="text-sm text-gray-500">
               {new Date(event.event_date + "T00:00:00").toLocaleDateString(
                 "pt-BR",
-                { day: "2-digit", month: "long", year: "numeric" },
+                {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                },
               )}
             </p>
             <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
@@ -265,20 +274,22 @@ export function EventDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              setEditEventName(event.name);
-              setEditEventDate(event.event_date);
-              setEditEventNotes(event.notes ?? "");
-              setIsEditEventOpen(true);
-            }}
-          >
-            <Edit2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Editar</span>
-          </Button>
-          {canEdit && (
+          {canUpdate && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setEditEventName(event.name);
+                setEditEventDate(event.event_date);
+                setEditEventNotes(event.notes ?? "");
+                setIsEditEventOpen(true);
+              }}
+            >
+              <Edit2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Editar</span>
+            </Button>
+          )}
+          {canUpdate && canEdit && (
             <Button
               variant="secondary"
               size="sm"

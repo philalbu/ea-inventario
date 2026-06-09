@@ -42,7 +42,7 @@ export function useProducts() {
 
   const createProduct = useMutation({
     mutationFn: (data: ProductFormData) =>
-      productsService.create(data, user!.id),
+      productsService.create(data, user!.id, user!.email ?? ""),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
   });
 
@@ -55,7 +55,14 @@ export function useProducts() {
       id: string;
       data: Partial<ProductFormData>;
       currentImagePath?: string | null;
-    }) => productsService.update(id, data, user!.id, currentImagePath),
+    }) =>
+      productsService.update(
+        id,
+        data,
+        user!.id,
+        user!.email ?? "",
+        currentImagePath,
+      ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
   });
 
@@ -63,10 +70,13 @@ export function useProducts() {
     mutationFn: ({
       id,
       imagePath,
+      name,
     }: {
       id: string;
       imagePath?: string | null;
-    }) => productsService.delete(id, user!.id, imagePath),
+      name?: string;
+    }) =>
+      productsService.delete(id, user!.id, user!.email ?? "", imagePath, name),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
   });
 

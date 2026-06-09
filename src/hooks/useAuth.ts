@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/auth.store";
 import { authService } from "@/services/auth.service";
 import { categoriesService } from "@/services/products.service";
+import { auditService } from "@/services/admin.service";
 
 export function useAuth() {
   const { user, isLoading, setUser, setLoading } = useAuthStore();
@@ -44,11 +45,27 @@ export function useAuth() {
     const data = await authService.signIn(email, password);
     if (data.user) {
       await categoriesService.seedDefaults(data.user.id);
+      await auditService.log({
+        userId: data.user.id,
+        userEmail: email,
+        action: "LOGIN",
+        module: "auth",
+        recordLabel: "Login no sistema",
+      });
     }
     return data;
   };
 
   const signOut = async () => {
+    if (user) {
+      await auditService.log({
+        userId: user.id,
+        userEmail: user.email ?? "",
+        action: "LOGOUT",
+        module: "auth",
+        recordLabel: "Logout do sistema",
+      });
+    }
     await authService.signOut();
   };
 

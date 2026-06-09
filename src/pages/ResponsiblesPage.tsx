@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/common/Button";
 import { Modal } from "@/components/common/Modal";
 import { useResponsibles } from "@/hooks/useResponsibles";
+import { usePermissionStore } from "@/store/permission.store";
 import type { Responsible } from "@/types";
 
 export function ResponsiblesPage() {
@@ -22,10 +23,14 @@ export function ResponsiblesPage() {
     deleteResponsible,
   } = useResponsibles();
 
+  const hasPermission = usePermissionStore((s) => s.hasPermission);
+  const canCreate = hasPermission("responsibles", "create");
+  const canUpdate = hasPermission("responsibles", "update");
+  const canDelete = hasPermission("responsibles", "delete");
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Responsible | null>(null);
   const [deletingItem, setDeletingItem] = useState<Responsible | null>(null);
-
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -82,16 +87,18 @@ export function ResponsiblesPage() {
             {responsibles.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <Button
-          size="sm"
-          onClick={() => {
-            resetForm();
-            setIsCreateOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Novo Responsável</span>
-        </Button>
+        {canCreate && (
+          <Button
+            size="sm"
+            onClick={() => {
+              resetForm();
+              setIsCreateOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Novo Responsável</span>
+          </Button>
+        )}
       </div>
 
       {isLoading ? (
@@ -139,22 +146,28 @@ export function ResponsiblesPage() {
                   </div>
                 </div>
               </div>
-              <div className="flex gap-2 shrink-0">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => openEdit(r)}
-                >
-                  <Edit2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => setDeletingItem(r)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+              {(canUpdate || canDelete) && (
+                <div className="flex gap-2 shrink-0">
+                  {canUpdate && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => openEdit(r)}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {canDelete && (
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => setDeletingItem(r)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>

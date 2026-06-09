@@ -8,24 +8,39 @@ import {
   ChevronRight,
   Calendar,
   Users,
+  Shield,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/utils/cn";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/store/auth.store";
-
-const navItems = [
-  { to: "/", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/products", icon: Package, label: "Produtos" },
-  { to: "/events", icon: Calendar, label: "Eventos" },
-  { to: "/responsibles", icon: Users, label: "Responsáveis" },
-];
+import { usePermissions } from "@/hooks/usePermissions";
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { signOut } = useAuth();
   const { user } = useAuthStore();
+  const { isAdmin, canAccess } = usePermissions();
+
+  const navItems = [
+    { to: "/", icon: LayoutDashboard, label: "Dashboard", module: "dashboard" },
+    { to: "/products", icon: Package, label: "Produtos", module: "products" },
+    { to: "/events", icon: Calendar, label: "Eventos", module: "events" },
+    {
+      to: "/responsibles",
+      icon: Users,
+      label: "Responsáveis",
+      module: "responsibles",
+    },
+    { to: "/admin", icon: Shield, label: "Administrador", module: "admin" },
+  ];
+
+  // Filtra os itens conforme permissão
+  const visibleItems = navItems.filter((item) => {
+    if (item.module === "admin") return isAdmin;
+    return canAccess(item.module);
+  });
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -47,7 +62,7 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 px-2 py-4 space-y-1">
-        {navItems.map(({ to, icon: Icon, label }) => (
+        {visibleItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}

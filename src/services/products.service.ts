@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { storageService } from "./storage.service";
+import { auditService } from "./admin.service";
 import type { Product, ProductFormData, Category, Location } from "@/types";
 
 export const productsService = {
@@ -33,38 +34,6 @@ export const productsService = {
     return (data as Product[]) ?? [];
   },
 
-  async create(formData: ProductFormData, userId: string): Promise<Product> {
-    let imageUrl: string | null = null;
-    let imagePath: string | null = null;
-    if (formData.image && formData.image.length > 0) {
-      const result = await storageService.uploadImage(
-        formData.image[0],
-        userId,
-      );
-      imageUrl = result.url;
-      imagePath = result.path;
-    }
-    const { data, error } = await supabase
-      .from("products")
-      .insert({
-        name: formData.name,
-        quantity: formData.quantity,
-        category_id: formData.category_id || null,
-        category_name: formData.category_name || null,
-        location_id: formData.location_id || null,
-        location_name: formData.location_name || null,
-        status: formData.status,
-        description: formData.description || null,
-        image_url: imageUrl,
-        image_path: imagePath,
-        user_id: userId,
-      })
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
-    return data as Product;
-  },
-
   async getStats(): Promise<{
     total: number;
     active: number;
@@ -96,10 +65,62 @@ export const productsService = {
     };
   },
 
+  async create(
+    formData: ProductFormData,
+    userId: string,
+    userEmail: string,
+  ): Promise<Product> {
+    let imageUrl: string | null = null;
+    let imagePath: string | null = null;
+    if (formData.image && formData.image.length > 0) {
+      const result = await storageService.uploadImage(
+        formData.image[0],
+        userId,
+      );
+      imageUrl = result.url;
+      imagePath = result.path;
+    }
+    const { data, error } = await supabase
+      .from("products")
+      .insert({
+        name: formData.name,
+        quantity: formData.quantity,
+        category_id: formData.category_id || null,
+        category_name: formData.category_name || null,
+        location_id: formData.location_id || null,
+        location_name: formData.location_name || null,
+        status: formData.status,
+        description: formData.description || null,
+        image_url: imageUrl,
+        image_path: imagePath,
+        user_id: userId,
+      })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+
+    await auditService.log({
+      userId,
+      userEmail,
+      action: "CREATE",
+      module: "products",
+      recordId: (data as Product).id,
+      recordLabel: formData.name,
+      newData: {
+        name: formData.name,
+        quantity: formData.quantity,
+        status: formData.status,
+      },
+    });
+
+    return data as Product;
+  },
+
   async update(
     id: string,
     formData: Partial<ProductFormData>,
     userId: string,
+    userEmail: string,
     currentImagePath?: string | null,
   ): Promise<Product> {
     let imageUrl: string | undefined;
@@ -135,18 +156,44 @@ export const productsService = {
       .select()
       .single();
     if (error) throw new Error(error.message);
+
+    await auditService.log({
+      userId,
+      userEmail,
+      action: "UPDATE",
+      module: "products",
+      recordId: id,
+      recordLabel: formData.name,
+      newData: {
+        name: formData.name,
+        quantity: formData.quantity,
+        status: formData.status,
+      },
+    });
+
     return data as Product;
   },
 
   async delete(
     id: string,
-    _userId: string,
+    userId: string,
+    userEmail: string,
     imagePath?: string | null,
+    productName?: string,
   ): Promise<void> {
     if (imagePath)
       await storageService.deleteImage(imagePath).catch(() => null);
     const { error } = await supabase.from("products").delete().eq("id", id);
     if (error) throw new Error(error.message);
+
+    await auditService.log({
+      userId,
+      userEmail,
+      action: "DELETE",
+      module: "products",
+      recordId: id,
+      recordLabel: productName,
+    });
   },
 };
 
@@ -158,15 +205,6 @@ export const categoriesService = {
       .order("name");
     if (error) throw new Error(error.message);
     return (data as Category[]) ?? [];
-  },
-
-  async getAllForSelect(): Promise<Product[]> {
-    const { data, error } = await supabase
-      .from("products")
-      .select("id, name, quantity, image_url, category_name, location_name")
-      .order("name");
-    if (error) throw new Error(error.message);
-    return (data as Product[]) ?? [];
   },
 
   async create(name: string, userId: string): Promise<Category> {

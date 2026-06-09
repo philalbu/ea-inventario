@@ -22,10 +22,17 @@ import { Spinner } from "@/components/common/Spinner";
 import { useProducts } from "@/hooks/useProducts";
 import { productsService } from "@/services/products.service";
 import { useAuthStore } from "@/store/auth.store";
+import { usePermissionStore } from "@/store/permission.store";
 import type { Product, ViewMode, ProductFormData } from "@/types";
 
 export function ProductsPage() {
   const { user } = useAuthStore();
+  const hasPermission = usePermissionStore((s) => s.hasPermission);
+
+  const canCreate = hasPermission("products", "create");
+  const canUpdate = hasPermission("products", "update");
+  const canDelete = hasPermission("products", "delete");
+
   const {
     products,
     categories,
@@ -74,9 +81,8 @@ export function ProductsPage() {
     if (!sentinel) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage)
           fetchNextPage();
-        }
       },
       { threshold: 0.1 },
     );
@@ -128,6 +134,7 @@ export function ProductsPage() {
     await deleteProduct.mutateAsync({
       id: deletingProduct.id,
       imagePath: deletingProduct.image_path,
+      name: deletingProduct.name,
     });
     setDeletingProduct(null);
   };
@@ -165,7 +172,6 @@ export function ProductsPage() {
   };
 
   const total = stats?.total ?? 0;
-
   const statusLabel: Record<string, string> = {
     active: "Ativo",
     low_stock: "Estoque Baixo",
@@ -184,53 +190,55 @@ export function ProductsPage() {
           </p>
         </div>
 
-        {/* Dropdown Adicionar */}
-        <div className="relative">
-          <Button size="sm" onClick={() => setDropdownOpen(!dropdownOpen)}>
-            <Plus className="h-4 w-4" />
-            <span>Adicionar</span>
-          </Button>
-          {dropdownOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setDropdownOpen(false)}
-              />
-              <div
-                className="absolute right-0 z-20 bg-white rounded-xl shadow-lg border border-gray-300 w-48 overflow-hidden"
-                style={{ top: "calc(100% + 12px)" }}
-              >
-                <button
-                  onClick={() => {
-                    setIsAddOpen(true);
-                    setDropdownOpen(false);
-                  }}
-                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-gray-700 hover:bg-primary-600 hover:text-white transition-colors"
+        {/* Dropdown Adicionar — só aparece se pode criar */}
+        {canCreate && (
+          <div className="relative">
+            <Button size="sm" onClick={() => setDropdownOpen(!dropdownOpen)}>
+              <Plus className="h-4 w-4" />
+              <span>Adicionar</span>
+            </Button>
+            {dropdownOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setDropdownOpen(false)}
+                />
+                <div
+                  className="absolute right-0 z-20 bg-white rounded-xl shadow-lg border border-gray-300 w-48 overflow-hidden"
+                  style={{ top: "calc(100% + 12px)" }}
                 >
-                  <Package className="h-4 w-4" /> Produto
-                </button>
-                <button
-                  onClick={() => {
-                    setIsCatOpen(true);
-                    setDropdownOpen(false);
-                  }}
-                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-200 transition-colors"
-                >
-                  <Tag className="h-4 w-4" /> Categoria
-                </button>
-                <button
-                  onClick={() => {
-                    setIsLocOpen(true);
-                    setDropdownOpen(false);
-                  }}
-                  className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-200 transition-colors"
-                >
-                  <MapPin className="h-4 w-4" /> Local
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+                  <button
+                    onClick={() => {
+                      setIsAddOpen(true);
+                      setDropdownOpen(false);
+                    }}
+                    className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-gray-700 hover:bg-primary-600 hover:text-white transition-colors"
+                  >
+                    <Package className="h-4 w-4" /> Produto
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsCatOpen(true);
+                      setDropdownOpen(false);
+                    }}
+                    className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-200 transition-colors"
+                  >
+                    <Tag className="h-4 w-4" /> Categoria
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsLocOpen(true);
+                      setDropdownOpen(false);
+                    }}
+                    className="flex items-center gap-2.5 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-200 transition-colors"
+                  >
+                    <MapPin className="h-4 w-4" /> Local
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Filters */}
@@ -379,8 +387,10 @@ export function ProductsPage() {
               <ProductCard
                 key={p.id}
                 product={p}
-                onEdit={setEditingProduct}
-                onDelete={setDeletingProduct}
+                onEdit={canUpdate ? setEditingProduct : undefined}
+                onDelete={canDelete ? setDeletingProduct : undefined}
+                canUpdate={canUpdate}
+                canDelete={canDelete}
               />
             ))}
             {filtered.length === 0 && (
@@ -409,8 +419,10 @@ export function ProductsPage() {
         <>
           <ProductTable
             products={filtered}
-            onEdit={setEditingProduct}
-            onDelete={setDeletingProduct}
+            onEdit={canUpdate ? setEditingProduct : undefined}
+            onDelete={canDelete ? setDeletingProduct : undefined}
+            canUpdate={canUpdate}
+            canDelete={canDelete}
           />
           <div ref={sentinelRef} className="flex justify-center py-6">
             {isFetchingNextPage && <Spinner size="md" />}
