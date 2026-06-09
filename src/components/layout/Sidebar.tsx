@@ -11,10 +11,12 @@ import {
   Shield,
 } from "lucide-react";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/utils/cn";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/store/auth.store";
 import { usePermissions } from "@/hooks/usePermissions";
+import { profilesService } from "@/services/admin.service";
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -22,6 +24,13 @@ export function Sidebar() {
   const { signOut } = useAuth();
   const { user } = useAuthStore();
   const { isAdmin, canAccess } = usePermissions();
+
+  const { data: profile } = useQuery({
+    queryKey: ["my-profile", user?.id],
+    queryFn: () => profilesService.getMyProfile(user!.id),
+    enabled: !!user,
+    staleTime: 1000 * 60 * 10,
+  });
 
   const navItems = [
     { to: "/", icon: LayoutDashboard, label: "Dashboard", module: "dashboard" },
@@ -36,7 +45,6 @@ export function Sidebar() {
     { to: "/admin", icon: Shield, label: "Administrador", module: "admin" },
   ];
 
-  // Filtra os itens conforme permissão
   const visibleItems = navItems.filter((item) => {
     if (item.module === "admin") return isAdmin;
     return canAccess(item.module);
@@ -94,7 +102,7 @@ export function Sidebar() {
           <div className="px-3 py-2 mb-2">
             <p className="text-xs text-primary-300">Logado como</p>
             <p className="text-sm font-medium text-white truncate">
-              {user?.email}
+              {profile?.username ?? user?.email}
             </p>
           </div>
         )}
