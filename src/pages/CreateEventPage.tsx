@@ -22,7 +22,7 @@ import { useEvents } from "@/hooks/useEvents";
 import { useAuthStore } from "@/store/auth.store";
 import { productsService } from "@/services/products.service";
 import { getThumbnailUrl } from "@/utils/image";
-import type { CartItem, EventFormData } from "@/types";
+import type { CartItem } from "@/types";
 
 const schema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
