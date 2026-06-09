@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/common/Button";
 import { Modal } from "@/components/common/Modal";
 import { useEvents } from "@/hooks/useEvents";
-import { useResponsibles } from "@/hooks/useResponsibles";
 import { useNavigate } from "react-router-dom";
 import { usePermissionStore } from "@/store/permission.store";
 import type { AppEvent } from "@/types";
@@ -54,7 +53,6 @@ const statusConfig = {
 export function EventsPage() {
   const navigate = useNavigate();
   const { events, isLoading, deleteEvent } = useEvents();
-  const { responsibles } = useResponsibles();
   const [deletingEvent, setDeletingEvent] = useState<AppEvent | null>(null);
 
   const hasPermission = usePermissionStore((s) => s.hasPermission);

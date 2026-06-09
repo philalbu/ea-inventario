@@ -80,16 +80,9 @@ export function useMyPermissions() {
     module: string,
     action: "view" | "create" | "update" | "delete",
   ) => {
-    // Super admin tem tudo
     if (roleQuery.data === "super_admin") return true;
-
-    const perm = permissionsQuery.data?.find((p) => {
-      // Precisa buscar pelo nome do módulo — via module_id
-      return true; // simplificado, será refinado depois
-    });
-
+    const perm = permissionsQuery.data?.find((p) => p.module_name === module);
     if (!perm) return false;
-
     const map = {
       view: perm.can_view,
       create: perm.can_create,

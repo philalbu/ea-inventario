@@ -57,7 +57,6 @@ export function EventDetailPage() {
 
   const hasPermission = usePermissionStore((s) => s.hasPermission);
   const canUpdate = hasPermission("events", "update");
-  const canDelete = hasPermission("events", "delete");
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [missingItem, setMissingItem] = useState<EventItem | null>(null);

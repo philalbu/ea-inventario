@@ -17,8 +17,7 @@ export function ProtectedRoute({
   requireSuperAdmin = false,
 }: ProtectedRouteProps) {
   const { user } = useAuthStore();
-  const { role, isLoading, isSuperAdmin, isAdmin, canAccess } =
-    usePermissions();
+  const { isLoading, isSuperAdmin, isAdmin, canAccess } = usePermissions();
 
   if (isLoading) return <FullPageSpinner />;
   if (!user) return <Navigate to="/login" replace />;
