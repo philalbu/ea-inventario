@@ -6,11 +6,19 @@ import type { Product } from "@/types";
 
 interface ProductCardProps {
   product: Product;
-  onEdit: (product: Product) => void;
-  onDelete: (product: Product) => void;
+  onEdit?: (product: Product) => void;
+  onDelete?: (product: Product) => void;
+  canUpdate?: boolean;
+  canDelete?: boolean;
 }
 
-export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
+export function ProductCard({
+  product,
+  onEdit,
+  onDelete,
+  canUpdate = true,
+  canDelete = true,
+}: ProductCardProps) {
   const quantityColor =
     product.quantity === 0
       ? "text-red-600"
@@ -69,24 +77,30 @@ export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
               <span className="text-xs font-[600] text-gray-700 ml-1">un</span>
             </p>
           </div>
-          <div className="flex gap-1.5">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => onEdit(product)}
-              className="rounded-lg px-2.5 py-1.5"
-            >
-              <Edit2 className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => onDelete(product)}
-              className="rounded-lg px-2.5 py-1.5"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          </div>
+          {(canUpdate || canDelete) && (
+            <div className="flex gap-1.5">
+              {canUpdate && onEdit && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => onEdit(product)}
+                  className="rounded-lg px-2.5 py-1.5"
+                >
+                  <Edit2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
+              {canDelete && onDelete && (
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => onDelete(product)}
+                  className="rounded-lg px-2.5 py-1.5"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

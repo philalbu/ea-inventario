@@ -8,24 +8,47 @@ import {
   ChevronRight,
   Calendar,
   Users,
+  Shield,
 } from "lucide-react";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/utils/cn";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/store/auth.store";
-
-const navItems = [
-  { to: "/", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/products", icon: Package, label: "Produtos" },
-  { to: "/events", icon: Calendar, label: "Eventos" },
-  { to: "/responsibles", icon: Users, label: "Responsáveis" },
-];
+import { usePermissions } from "@/hooks/usePermissions";
+import { profilesService } from "@/services/admin.service";
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { signOut } = useAuth();
   const { user } = useAuthStore();
+  const { isAdmin, canAccess } = usePermissions();
+
+  const { data: profile } = useQuery({
+    queryKey: ["my-profile", user?.id],
+    queryFn: () => profilesService.getMyProfile(user!.id),
+    enabled: !!user,
+    staleTime: 1000 * 60 * 10,
+  });
+
+  const navItems = [
+    { to: "/", icon: LayoutDashboard, label: "Dashboard", module: "dashboard" },
+    { to: "/products", icon: Package, label: "Produtos", module: "products" },
+    { to: "/events", icon: Calendar, label: "Eventos", module: "events" },
+    {
+      to: "/responsibles",
+      icon: Users,
+      label: "Responsáveis",
+      module: "responsibles",
+    },
+    { to: "/admin", icon: Shield, label: "Administrador", module: "admin" },
+  ];
+
+  const visibleItems = navItems.filter((item) => {
+    if (item.module === "admin") return isAdmin;
+    return canAccess(item.module);
+  });
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -47,7 +70,7 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 px-2 py-4 space-y-1">
-        {navItems.map(({ to, icon: Icon, label }) => (
+        {visibleItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
@@ -79,7 +102,7 @@ export function Sidebar() {
           <div className="px-3 py-2 mb-2">
             <p className="text-xs text-primary-300">Logado como</p>
             <p className="text-sm font-medium text-white truncate">
-              {user?.email}
+              {profile?.username ?? user?.email}
             </p>
           </div>
         )}

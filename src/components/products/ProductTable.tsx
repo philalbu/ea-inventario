@@ -7,8 +7,10 @@ import type { Product } from "@/types";
 
 interface ProductTableProps {
   products: Product[];
-  onEdit: (product: Product) => void;
-  onDelete: (product: Product) => void;
+  onEdit?: (product: Product) => void;
+  onDelete?: (product: Product) => void;
+  canUpdate?: boolean;
+  canDelete?: boolean;
 }
 
 type SortKey = "name" | "quantity" | "category_name" | "status" | "created_at";
@@ -17,6 +19,8 @@ export function ProductTable({
   products,
   onEdit,
   onDelete,
+  canUpdate = true,
+  canDelete = true,
 }: ProductTableProps) {
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" }>({
     key: "created_at",
@@ -38,6 +42,7 @@ export function ProductTable({
         ? { key, dir: prev.dir === "asc" ? "desc" : "asc" }
         : { key, dir: "asc" },
     );
+
   const SortBtn = ({ col }: { col: SortKey }) => (
     <button
       onClick={() => toggleSort(col)}
@@ -57,6 +62,8 @@ export function ProductTable({
       </div>
     );
   }
+
+  const showActionsColumn = canUpdate || canDelete;
 
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-100">
@@ -86,9 +93,11 @@ export function ProductTable({
                 Status <SortBtn col="status" />
               </div>
             </th>
-            <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-              Ações
-            </th>
+            {showActionsColumn && (
+              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                Ações
+              </th>
+            )}
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
@@ -146,26 +155,32 @@ export function ProductTable({
               <td className="px-4 py-3">
                 <StatusBadge status={product.status} />
               </td>
-              <td className="px-4 py-3">
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => onEdit(product)}
-                    className="rounded-lg px-2.5 py-1.5"
-                  >
-                    <Edit2 className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => onDelete(product)}
-                    className="rounded-lg px-2.5 py-1.5"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </td>
+              {showActionsColumn && (
+                <td className="px-4 py-3">
+                  <div className="flex items-center justify-end gap-2">
+                    {canUpdate && onEdit && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => onEdit(product)}
+                        className="rounded-lg px-2.5 py-1.5"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                    {canDelete && onDelete && (
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => onDelete(product)}
+                        className="rounded-lg px-2.5 py-1.5"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

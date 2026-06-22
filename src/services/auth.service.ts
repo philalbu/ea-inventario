@@ -1,12 +1,24 @@
 import { supabase } from "@/lib/supabase";
 
 export const authService = {
-  async signIn(email: string, password: string) {
+  async signIn(username: string, password: string) {
+    // Busca o email pelo username na tabela profiles
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("email")
+      .eq("username", username)
+      .single();
+
+    if (profileError || !profile?.email) {
+      throw new Error("Usuário ou senha inválidos");
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: profile.email,
       password,
     });
-    if (error) throw new Error("E-mail ou senha inválidos");
+
+    if (error) throw new Error("Usuário ou senha inválidos");
     return data;
   },
 

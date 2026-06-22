@@ -10,7 +10,7 @@ import { useAuthStore } from "@/store/auth.store";
 import { FullPageSpinner } from "@/components/common/Spinner";
 
 const schema = z.object({
-  email: z.string().min(1, "E-mail é obrigatório").email("E-mail inválido"),
+  email: z.string().min(1, "Usuário é obrigatório"),
   password: z.string().min(1, "Senha é obrigatória"),
 });
 
@@ -76,12 +76,14 @@ export function LoginPage() {
               )}
 
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-white">E-mail</label>
+                <label className="text-sm font-medium text-white">
+                  Usuário
+                </label>
                 <input
-                  type="email"
-                  placeholder="seu@email.com"
-                  autoComplete="email"
-                  className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-white ${errors.email ? "border-red-300" : "border-transparent"}`}
+                  type="text"
+                  placeholder="nome.sobrenome"
+                  autoComplete="username"
+                  className={`...`}
                   {...register("email")}
                 />
                 {errors.email && (
