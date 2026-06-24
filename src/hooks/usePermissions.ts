@@ -20,8 +20,8 @@ export function usePermissions() {
   useEffect(() => {
     if (!user) return;
 
-    const load = async () => {
-      setLoading(true);
+    const load = async (showLoading = false) => {
+      if (showLoading) setLoading(true);
       try {
         const [userRole, userPermissions, modules] = await Promise.all([
           profilesService.getMyRole(user.id),
@@ -29,7 +29,6 @@ export function usePermissions() {
           permissionsService.getModules(),
         ]);
 
-        // Enriquece as permissões com o nome do módulo
         const enriched = userPermissions.map((p) => ({
           ...p,
           module_name: modules.find((m) => m.id === p.module_id)?.name ?? "",
@@ -41,13 +40,13 @@ export function usePermissions() {
         setRole(null);
         setPermissions([]);
       } finally {
-        setLoading(false);
+        if (showLoading) setLoading(false);
       }
     };
 
-    load();
+    load(true);
 
-    const interval = setInterval(load, 30000);
+    const interval = setInterval(() => load(false), 30000);
     return () => clearInterval(interval);
   }, [user?.id]);
 
