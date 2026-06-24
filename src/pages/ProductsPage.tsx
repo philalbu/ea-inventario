@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Plus,
   Search,
@@ -75,6 +76,22 @@ export function ProductsPage() {
   const [locError, setLocError] = useState("");
 
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      setIsAddOpen(true);
+      setSearchParams({});
+    }
+    if (searchParams.get("cat") === "1") {
+      setIsCatOpen(true);
+      setSearchParams({});
+    }
+    if (searchParams.get("loc") === "1") {
+      setIsLocOpen(true);
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -190,9 +207,8 @@ export function ProductsPage() {
           </p>
         </div>
 
-        {/* Dropdown Adicionar — só aparece se pode criar */}
         {canCreate && (
-          <div className="relative">
+          <div className="relative hidden md:block">
             <Button size="sm" onClick={() => setDropdownOpen(!dropdownOpen)}>
               <Plus className="h-4 w-4" />
               <span>Adicionar</span>
@@ -254,7 +270,6 @@ export function ProductsPage() {
           />
         </div>
         <div className="flex gap-2">
-          {/* Dropdown Categoria */}
           <div className="relative">
             <button
               onClick={() => {
@@ -309,7 +324,6 @@ export function ProductsPage() {
             )}
           </div>
 
-          {/* Dropdown Status */}
           <div className="relative">
             <button
               onClick={() => {
