@@ -3,8 +3,6 @@ import {
   LayoutDashboard,
   Package,
   LogOut,
-  Menu,
-  X,
   ChevronRight,
   Calendar,
   Users,
@@ -20,7 +18,6 @@ import { profilesService } from "@/services/admin.service";
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
   const { signOut } = useAuth();
   const { user } = useAuthStore();
   const { isAdmin, canAccess } = usePermissions();
@@ -50,14 +47,15 @@ export function Sidebar() {
     return canAccess(item.module);
   });
 
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full">
+  return (
+    <aside
+      className={cn(
+        "hidden md:flex flex-col bg-primary-700 transition-all duration-300 ease-in-out relative shrink-0",
+        collapsed ? "w-16" : "w-60",
+      )}
+    >
       {/* Logo */}
-      <div
-        className={cn(
-          "flex items-center justify-center px-4 py-5 border-b border-primary-700 bg-white",
-        )}
-      >
+      <div className="flex items-center justify-center px-4 py-5 border-b border-primary-700 bg-white">
         <img
           src="/ea-logo.png"
           alt="Esconderijo do Altíssimo"
@@ -117,63 +115,19 @@ export function Sidebar() {
           {!collapsed && "Sair"}
         </button>
       </div>
-    </div>
-  );
 
-  return (
-    <>
-      {/* Desktop Sidebar */}
-      <aside
-        className={cn(
-          "hidden md:flex flex-col bg-primary-700 transition-all duration-300 ease-in-out relative shrink-0",
-          collapsed ? "w-16" : "w-60",
-        )}
+      {/* Collapse button */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="absolute -right-3 top-6 z-10 w-6 h-6 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 transition-colors"
       >
-        <SidebarContent />
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="absolute -right-3 top-6 z-10 w-6 h-6 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 transition-colors"
-        >
-          <ChevronRight
-            className={cn(
-              "h-3.5 w-3.5 text-gray-600 transition-transform",
-              collapsed ? "" : "rotate-180",
-            )}
-          />
-        </button>
-      </aside>
-
-      {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between bg-primary-700 px-4 py-3">
-        <img
-          src="/ea-logo.png"
-          alt="Esconderijo do Altíssimo"
-          className="h-9 object-contain"
-        />
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="text-white p-1"
-        >
-          {mobileOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
+        <ChevronRight
+          className={cn(
+            "h-3.5 w-3.5 text-gray-600 transition-transform",
+            collapsed ? "" : "rotate-180",
           )}
-        </button>
-      </div>
-
-      {/* Mobile Drawer */}
-      {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-30 flex">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setMobileOpen(false)}
-          />
-          <div className="relative w-64 bg-primary-700 h-full pt-16">
-            <SidebarContent />
-          </div>
-        </div>
-      )}
-    </>
+        />
+      </button>
+    </aside>
   );
 }
