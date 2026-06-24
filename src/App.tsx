@@ -15,6 +15,7 @@ import { UsersPage } from "@/pages/admin/UsersPage";
 import { RolesPage } from "@/pages/admin/RolesPage";
 import { AuditPage } from "@/pages/admin/AuditPage";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
+import { ProductDetailPage } from "@/pages/ProductDetailPage";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, retry: 1 } },
@@ -41,6 +42,14 @@ export default function App() {
                 element={
                   <ProtectedRoute module="products">
                     <ProductsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/products/:id"
+                element={
+                  <ProtectedRoute module="products">
+                    <ProductDetailPage />
                   </ProtectedRoute>
                 }
               />

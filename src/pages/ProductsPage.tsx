@@ -388,9 +388,7 @@ export function ProductsPage() {
                 key={p.id}
                 product={p}
                 onEdit={canUpdate ? setEditingProduct : undefined}
-                onDelete={canDelete ? setDeletingProduct : undefined}
                 canUpdate={canUpdate}
-                canDelete={canDelete}
               />
             ))}
             {filtered.length === 0 && (
