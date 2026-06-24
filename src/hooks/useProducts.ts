@@ -63,7 +63,10 @@ export function useProducts() {
         user!.email ?? "",
         currentImagePath,
       ),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["product"] });
+    },
   });
 
   const deleteProduct = useMutation({
