@@ -25,6 +25,17 @@ export const productsService = {
     };
   },
 
+  async getById(id: string): Promise<Product> {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data as Product;
+  },
+
   async getAllForSelect(): Promise<Product[]> {
     const { data, error } = await supabase
       .from("products")
