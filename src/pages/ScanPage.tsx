@@ -71,7 +71,7 @@ export function ScanPage() {
           }
         },
       )
-      .then((controls) => {
+      .then((controls: any) => {
         controlsRef.current = controls;
       });
   }, []);
