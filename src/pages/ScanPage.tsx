@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { BrowserMultiFormatReader, NotFoundException } from "@zxing/library";
+import { BrowserMultiFormatReader } from "@zxing/browser";
 import { ArrowLeft, Package, Plus, Minus, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/auth.store";
@@ -14,7 +14,8 @@ export function ScanPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const controlsRef = useRef<{ stop: () => void } | null>(null);
+  const searchingRef = useRef(false);
 
   const [step, setStep] = useState<Step>("scanning");
   const [product, setProduct] = useState<Product | null>(null);
@@ -26,46 +27,54 @@ export function ScanPage() {
   const [success, setSuccess] = useState(false);
 
   const stopCamera = useCallback(() => {
-    readerRef.current?.reset();
+    controlsRef.current?.stop();
+    controlsRef.current = null;
   }, []);
-
-  const findByBarcode = useCallback(
-    async (barcode: string) => {
-      if (searching) return;
-      setSearching(true);
-      stopCamera();
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("barcode", barcode)
-        .single();
-      setSearching(false);
-      if (error || !data) {
-        setError("Produto não encontrado para este código de barras.");
-        setStep("scanning");
-        startCamera();
-        return;
-      }
-      setProduct(data as Product);
-      setStep("found");
-    },
-    [searching],
-  );
 
   const startCamera = useCallback(() => {
     if (!videoRef.current) return;
-    const reader = new BrowserMultiFormatReader();
-    readerRef.current = reader;
+    searchingRef.current = false;
     setError(null);
-    reader.decodeFromVideoDevice(null, videoRef.current, (result, err) => {
-      if (result) {
-        findByBarcode(result.getText());
-      }
-      if (err && !(err instanceof NotFoundException)) {
-        console.error(err);
-      }
-    });
-  }, [findByBarcode]);
+
+    const reader = new BrowserMultiFormatReader();
+    reader
+      .decodeFromVideoDevice(
+        undefined,
+        videoRef.current,
+        async (result: any, err: any) => {
+          if (result && !searchingRef.current) {
+            searchingRef.current = true;
+            setSearching(true);
+            controlsRef.current?.stop();
+
+            const barcode: string = result.getText();
+            const { data, error: dbError } = await supabase
+              .from("products")
+              .select("*")
+              .eq("barcode", barcode)
+              .single();
+
+            setSearching(false);
+
+            if (dbError || !data) {
+              setError("Produto não encontrado para este código de barras.");
+              searchingRef.current = false;
+              setTimeout(() => startCamera(), 2000);
+              return;
+            }
+
+            setProduct(data as Product);
+            setStep("found");
+          }
+          if (err && err?.name !== "NotFoundException") {
+            console.error(err);
+          }
+        },
+      )
+      .then((controls) => {
+        controlsRef.current = controls;
+      });
+  }, []);
 
   useEffect(() => {
     startCamera();
@@ -128,13 +137,13 @@ export function ScanPage() {
       setStep("scanning");
       startCamera();
     } else {
+      stopCamera();
       navigate(-1);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
-      {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-6 pb-4">
         <button onClick={handleBack} className="text-white/70 hover:text-white">
           <ArrowLeft className="h-5 w-5" />
@@ -147,11 +156,9 @@ export function ScanPage() {
         </h1>
       </div>
 
-      {/* Scanner */}
       <div className={step === "scanning" ? "block" : "hidden"}>
         <div className="relative mx-4 rounded-2xl overflow-hidden bg-black aspect-square">
           <video ref={videoRef} className="w-full h-full object-cover" />
-          {/* Viewfinder */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="w-56 h-36 border-2 border-white/60 rounded-xl" />
           </div>
@@ -169,7 +176,6 @@ export function ScanPage() {
         )}
       </div>
 
-      {/* Produto encontrado */}
       {step === "found" && product && (
         <div className="flex flex-col flex-1 px-4 gap-4">
           <div className="bg-white/10 rounded-2xl overflow-hidden">
@@ -222,7 +228,6 @@ export function ScanPage() {
         </div>
       )}
 
-      {/* Quantidade */}
       {step === "quantity" && product && (
         <div className="flex flex-col flex-1 px-4 gap-6">
           <div className="bg-white/10 rounded-2xl p-4 flex items-center gap-3">
