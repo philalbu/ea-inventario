@@ -3,6 +3,18 @@ import { storageService } from "./storage.service";
 import { auditService } from "./admin.service";
 import type { Product, ProductFormData, Category, Location } from "@/types";
 
+function generateEAN13(): string {
+  const digits = Array.from({ length: 12 }, () =>
+    Math.floor(Math.random() * 10),
+  );
+  const total = digits.reduce(
+    (sum, d, i) => sum + d * (i % 2 === 0 ? 1 : 3),
+    0,
+  );
+  const check = (10 - (total % 10)) % 10;
+  return [...digits, check].join("");
+}
+
 export const productsService = {
   async getAll(
     page = 0,
@@ -95,6 +107,7 @@ export const productsService = {
       .from("products")
       .insert({
         name: formData.name,
+        barcode: generateEAN13(),
         quantity: formData.quantity,
         category_id: formData.category_id || null,
         category_name: formData.category_name || null,

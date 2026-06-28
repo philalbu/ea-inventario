@@ -8,6 +8,7 @@ import {
   Tag,
   MapPin,
   X,
+  ScanLine,
 } from "lucide-react";
 import { useState } from "react";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -36,6 +37,14 @@ export function MobileBottomNav() {
   const rightItems = visibleItems.slice(half);
 
   const fabActions = [
+    {
+      label: "Escanear",
+      icon: ScanLine,
+      action: () => {
+        navigate("/scan");
+        setFabOpen(false);
+      },
+    },
     {
       label: "Produto",
       icon: Package,
