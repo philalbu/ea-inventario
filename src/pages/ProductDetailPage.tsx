@@ -7,8 +7,10 @@ import {
   Package,
   MapPin,
   AlertTriangle,
+  Printer,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import JsBarcode from "jsbarcode";
 import { Button } from "@/components/common/Button";
 import { Modal } from "@/components/common/Modal";
 import { ProductForm } from "@/components/products/ProductForm";
@@ -31,6 +33,8 @@ export function ProductDetailPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
+  const barcodeRef = useRef<SVGSVGElement>(null);
+
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
     queryFn: () => productsService.getById(id!),
@@ -38,6 +42,19 @@ export function ProductDetailPage() {
   });
 
   const { categories, locations, updateProduct, deleteProduct } = useProducts();
+
+  useEffect(() => {
+    if (product?.barcode && barcodeRef.current) {
+      JsBarcode(barcodeRef.current, product.barcode, {
+        format: "EAN13",
+        width: 2,
+        height: 60,
+        displayValue: true,
+        fontSize: 12,
+        margin: 8,
+      });
+    }
+  }, [product?.barcode]);
 
   const handleEdit = async (data: ProductFormData) => {
     if (!product) return;
@@ -64,6 +81,33 @@ export function ProductDetailPage() {
       name: product.name,
     });
     navigate("/products");
+  };
+
+  const handlePrint = () => {
+    if (!product?.barcode) return;
+    const win = window.open("", "_blank", "width=400,height=300");
+    if (!win) return;
+    const svg = barcodeRef.current?.outerHTML ?? "";
+    win.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Etiqueta - ${product.name}</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; padding: 16px; }
+            .name { font-size: 14px; font-weight: 600; text-align: center; margin-bottom: 8px; max-width: 200px; }
+            svg { max-width: 200px; }
+          </style>
+        </head>
+        <body>
+          <p class="name">${product.name}</p>
+          ${svg}
+          <script>window.onload = () => { window.print(); window.close(); }<\/script>
+        </body>
+      </html>
+    `);
+    win.document.close();
   };
 
   const quantityColor =
@@ -182,11 +226,30 @@ export function ProductDetailPage() {
           </div>
 
           {product.description && (
-            <div>
+            <div className="mb-6">
               <p className="text-xs text-gray-400 mb-1">Descrição</p>
               <p className="text-sm text-gray-700 leading-relaxed">
                 {product.description}
               </p>
+            </div>
+          )}
+
+          {/* Código de Barras */}
+          {product.barcode && (
+            <div className="border-t border-gray-100 pt-6">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs text-gray-400">Código de Barras</p>
+                <button
+                  onClick={handlePrint}
+                  className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  <Printer className="h-3.5 w-3.5" />
+                  Imprimir etiqueta
+                </button>
+              </div>
+              <div className="flex justify-center bg-gray-50 rounded-xl p-4">
+                <svg ref={barcodeRef} />
+              </div>
             </div>
           )}
         </div>

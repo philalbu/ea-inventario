@@ -33,6 +33,7 @@ export type ProductStatus = "active" | "inactive" | "low_stock";
 export interface Product {
   id: string;
   name: string;
+  barcode: string | null;
   quantity: number;
   category_id: string | null;
   category_name: string | null;
